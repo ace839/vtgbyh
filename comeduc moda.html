@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comeduc - Moda</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f0f0;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #FF5722;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        .logo {
+            max-width: 700px;
+            height: auto;
+        }
+        .nav {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        .nav div {
+            margin: 0 10px;
+            cursor: pointer;
+            font-weight: bold;
+            color: white;
+            padding: 10px 15px;
+            background-color: #E64A19;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        .nav div:hover {
+            background-color: #D84315;
+        }
+        .category {
+            margin: 20px;
+            background-color: white;
+            border-radius: 5px;
+            padding: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .products {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        .product {
+            background-color: white;
+            border-radius: 5px;
+            padding: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            transition: transform 0.3s;
+        }
+        .product:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        .product img {
+            max-width: 100%;
+            border-radius: 5px;
+        }
+        .button {
+            background-color: #FF5722;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.3s;
+        }
+        .button:hover {
+            background-color: #E64A19;
+        }
+        .cart {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+        }
+        .cart h3 {
+            margin: 0;
+        }
+        .cart-items {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+            padding: 5px;
+            border-bottom: 1px solid #eee;
+        }
+        .modal {
+            display: none; /* Escondido por padrão */
+            position: fixed; /* Fixo na tela */
+            z-index: 1001; /* Sobre o conteúdo */
+            left: 0;
+            top: 0;
+            width: 100%; /* Largura total */
+            height: 100%; /* Altura total */
+            overflow: auto; /* Adiciona rolagem se necessário */
+            background-color: rgba(0, 0, 0, 0.5); /* Fundo semi-transparente */
+        }
+        .modal-content {
+            background-color: white;
+            margin: 10% auto; /* Margem do topo */
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%; /* Largura do conteúdo do modal */
+            max-width: 600px; /* Largura máxima */
+            border-radius: 5px; /* Bordas arredondadas */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box; /* Para incluir padding e border na largura total */
+        }
+        footer {
+            text-align: center;
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #FF5722;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <img src="https://i.postimg.cc/Y0vDktML/ololol.jpg" alt="Logotipo" class="logo">
+</header>
+
+<div class="nav">
+    <div onclick="scrollToCategory('social')">Social</div>
+    <div onclick="scrollToCategory('esportiva')">Esportiva</div>
+    <div onclick="scrollToCategory('adulto')">Adulto</div>
+    <div onclick="scrollToCategory('crianca')">Criança</div>
+    <div onclick="scrollToCategory('acessorios')">Acessórios</div>
+    <div onclick="scrollToCategory('casual')">Casual</div>
+    <div onclick="scrollToCategory('formal')">Formal</div>
+</div>
+
+<!-- Carrinho -->
+<div class="cart" id="cart">
+    <h3>Carrinho</h3>
+    <div class="cart-items" id="cartItems"></div>
+    <p id="totalPrice">Total: R$ 0.00</p>
+    <button class="button" onclick="toggleCheckout()">Finalizar Compra</button>
+</div>
+
+<!-- Modal de Checkout -->
+<div class="modal" id="checkoutModal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h3>Informações de Compra</h3>
+        <label>Nome:</label>
+        <input type="text" id="checkoutName" required>
+        <label>Telefone:</label>
+        <input type="text" id="phone" required>
+        <label>Endereço:</label>
+        <input type="text" id="address" required>
+        <label>Referência:</label>
+        <input type="text" id="reference">
+        <label>Método de Pagamento:</label>
+        <select id="paymentMethod" required>
+            <option value="Dinheiro">Dinheiro</option>
+            <option value="Pix">Pix</option>
+            <option value="Cartão">Cartão</option>
+        </select>
+        <button class="button" onclick="sendOrder()">Enviar Pedido</button>
+    </div>
+</div>
+
+<!-- Categories -->
+<div class="category" id="social">
+    <h2>Social</h2>
+    <div class="products">
+        <div class="product">
+            <img src="https://via.placeholder.com/200" alt="Vestido Social">
+            <h3>Vestido Social</h3>
+            <p>R$ 150,00</p>
+            <button class="button" onclick="addToCart('Vestido Social', 150.00)">Adicionar ao Carrinho</button>
+        </div>
+        <div class="product">
+            <img src="https://via.placeholder.com/200" alt="Terno">
+            <h3>Terno</h3>
+            <p>R$ 300,00</p>
+            <button class="button" onclick="addToCart('Terno', 300.00)">Adicionar ao Carrinho</button>
+        </div>
+    </div>
+</div>
+
+<div class="category" id="esportiva">
+    <h2>Esportiva</h2>
+    <div class="products">
+        <div class="product">
+            <img src="https://via.placeholder.com/200" alt="Camiseta Esportiva">
+            <h3>Camiseta Esportiva</h3>
+            <p>R$ 80,00</p>
+            <button class="button" onclick="addToCart('Camiseta Esportiva', 80.00)">Adicionar ao Carrinho</button>
+        </div>
+        <div class="product">
+            <img src="https://via.placeholder.com/200" alt="Calça Esportiva">
+            <h3>Calça Esportiva</h3>
+            <p>R$ 120,00</p>
+            <button class="button" onclick="addToCart('Calça Esportiva', 120.00)">Adicionar ao Carrinho</button>
+        </div>
+    </div>
+</div>
+
+<!-- Outros Categorias -->
+<div class="category" id="adulto">
+    <h2>Adulto</h2>
+    <div class="products">
+        <div class="product">
+            <img src="https://via.placeholder.com/200" alt="Camisa Adulto">
+            <h3>Camisa Adulto</h3>
+            <p>R$ 90,00</p>
+            <button class="button" onclick="addToCart('Camisa Adulto', 90.00)">Adicionar ao Carrinho</button>
+        </div>
+    </div>
+</div>
+
+<div class="category" id="crianca">
+    <h2>Criança</h2>
+    <div class="products">
+        <div class="product">
+            <img src="https://via.placeholder.com/200" alt="Vestido Criança">
+            <h3>Vestido Criança</h3>
+            <p>R$ 70,00</p>
+            <button class="button" onclick="addToCart('Vestido Criança', 70.00)">Adicionar ao Carrinho</button>
+        </div>
+    </div>
+</div>
+
+<div class="category" id="acessorios">
+    <h2>Acessórios</h2>
+    <div class="products">
+        <div class="product">
+            <img src="https://via.placeholder.com/200" alt="Cinto">
+            <h3>Cinto</h3>
+            <p>R$ 30,00</p>
+            <button class="button" onclick="addToCart('Cinto', 30.00)">Adicionar ao Carrinho</button>
+        </div>
+    </div>
+</div>
+
+<div class="category" id="casual">
+    <h2>Casual</h2>
+    <div class="products">
+        <div class="product">
+            <img src="https://via.placeholder.com/200" alt="Camiseta Casual">
+            <h3>Camiseta Casual</h3>
+            <p>R$ 50,00</p>
+            <button class="button" onclick="addToCart('Camiseta Casual', 50.00)">Adicionar ao Carrinho</button>
+        </div>
+    </div>
+</div>
+
+<div class="category" id="formal">
+    <h2>Formal</h2>
+    <div class="products">
+        <div class="product">
+            <img src="https://via.placeholder.com/200" alt="Saia Formal">
+            <h3>Saia Formal</h3>
+            <p>R$ 120,00</p>
+            <button class="button" onclick="addToCart('Saia Formal', 120.00)">Adicionar ao Carrinho</button>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <p>&copy; 2024 Comeduc - Todos os direitos reservados.</p>
+</footer>
+
+<script>
+    let cart = [];
+
+    function addToCart(productName, price) {
+        cart.push({name: productName, price: price});
+        updateCart();
+    }
+
+    function updateCart() {
+        const cartItemsDiv = document.getElementById('cartItems');
+        const totalPriceElement = document.getElementById('totalPrice');
+        cartItemsDiv.innerHTML = '';
+        let total = 0;
+        cart.forEach(item => {
+            total += item.price;
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'cart-item';
+            itemDiv.innerHTML = `${item.name} - R$ ${item.price.toFixed(2)}`;
+            cartItemsDiv.appendChild(itemDiv);
+        });
+        totalPriceElement.innerText = `Total: R$ ${total.toFixed(2)}`;
+    }
+
+    function toggleCheckout() {
+        const modal = document.getElementById('checkoutModal');
+        modal.style.display = modal.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function closeModal() {
+        document.getElementById('checkoutModal').style.display = 'none';
+    }
+
+    function sendOrder() {
+        const name = document.getElementById('checkoutName').value;
+        const phone = document.getElementById('phone').value;
+        const address = document.getElementById('address').value;
+        const reference = document.getElementById('reference').value;
+        const paymentMethod = document.getElementById('paymentMethod').value;
+
+        if (!name || !phone || !address || !paymentMethod) {
+            alert("Por favor, preencha todos os campos obrigatórios.");
+            return;
+        }
+
+        const itemsList = cart.map(item => `${item.name} - R$ ${item.price.toFixed(2)}`).join('%0A');
+        const total = cart.reduce((acc, item) => acc + item.price, 0).toFixed(2);
+
+        const message = `*Pedido Novo*%0ANome: ${name}%0ATelefone: ${phone}%0AEndereço: ${address}%0AReferência: ${reference}%0AMétodo de Pagamento: ${paymentMethod}%0AItens:%0A${itemsList}%0A*Total: R$ ${total}*`;
+        const whatsappNumber = '5534997086180';
+        const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+
+        window.open(whatsappUrl, '_blank');
+
+        // Limpa o carrinho e fecha o modal
+        cart = [];
+        updateCart();
+        closeModal();
+    }
+
+    function scrollToCategory(categoryId) {
+        const category = document.getElementById(categoryId);
+        category.scrollIntoView({ behavior: 'smooth' });
+    }
+</script>
+
+</body>
+</html>
